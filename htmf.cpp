@@ -30,6 +30,9 @@
 #include <cassert>
 #include <cstdlib>
 #include <vector>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
 
 using std::vector;
 
@@ -46,7 +49,7 @@ struct pos_t {
 const int MAX_PLAYERS = 4;
 const int MAX_PENGUINS = 4;
 
-typedef struct player_t {
+struct player_t {
   pos_t penguin[MAX_PENGUINS];
   unsigned char n_played_penguins;
   unsigned char score;
