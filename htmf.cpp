@@ -57,6 +57,29 @@ void test_compute_moves() {
 }
 
 
+state_t random_game_result(const int n_players, const int n_penguins) {
+  state_t state;
+  state.n_players = n_players;
+  state.n_penguins = n_penguins;
+  state.cur_player_idx = 0;
+
+  // Random board.
+  random_init_board(state.board);
+
+  // Initialize players.
+  for (int i = 0; i < n_players; i++) {
+    player_t& player = state.player[i];
+    player.n_played_penguins = 0;
+    player.score = 0;
+  }
+
+  // Play a random game.
+  random_simulation(&state);
+
+  return state;
+}
+
+
 int main(int argc, char* argv[]) {
   const int n_players = atoi(argv[1]);
   const int n_penguins = atoi(argv[2]);

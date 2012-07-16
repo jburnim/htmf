@@ -56,6 +56,18 @@ int compute_utility(const state_t& state, const int player_idx) {
 void make_move(move_t move, state_t* state) {
   player_t& player = state->player[move.player_idx];
 
+  assert(move.player_idx >= 0);
+  assert(move.player_idx < state->n_players);
+
+  assert(move.penguin_idx >= 0);
+  assert(move.penguin_idx < state->n_penguins);
+  assert(move.penguin_idx <= state->player[move.penguin_idx].n_played_penguins);
+
+  assert(move.dest.x >= 0);
+  assert(move.dest.y >= 0);
+  assert(move.dest.x < M);
+  assert(move.dest.y < N);
+
   // Update penguin position.
   player.penguin[move.penguin_idx] = move.dest;
 
@@ -175,29 +187,28 @@ void read_state(const char* desc[N], state_t* state) {
 }
 
 
-state_t random_simulation(const state_t& st, const int player_idx) {
-  state_t state = st;
-  const int n_players = state.n_players;
-  const int n_penguins = state.n_penguins;
+void random_simulation(state_t* state) {
+  const int n_players = state->n_players;
+  const int n_penguins = state->n_penguins;
 
   // Play randomly until no player can move.
-  for (int i = player_idx, turns_since_move = 0; ; i = (i+1)%n_players) {
-    player_t& player = state.player[i];
+  int turns_since_move = 0;
+  while (true) {
+    int i = state->cur_player_idx;
+    player_t& player = state->player[i];
 
     // Randomly move one penguin.
     vector<move_t> moves;
-    compute_moves(state, i, &moves);
+    compute_moves(*state, i, &moves);
     if (moves.size() == 0) {
       if (++turns_since_move == n_players)
         break;
     } else {
       move_t move = moves[int(rand()/(double)RAND_MAX * moves.size())];
-      make_move(move, &state);
+      make_move(move, state);
       turns_since_move = 0;
     }
   }
-
-  return state;
 }
 
 
@@ -234,23 +245,4 @@ void random_init_board(board_t board) {
     }
   }
   assert(n == sizeof(tiles));
-}
-
-
-state_t random_game_result(const int n_players, const int n_penguins) {
-  state_t state;
-  state.n_players = n_players;
-  state.n_penguins = n_penguins;
-
-  // Random board.
-  random_init_board(state.board);
-
-  // Initialize players.
-  for (int i = 0; i < n_players; i++) {
-    player_t& player = state.player[i];
-    player.n_played_penguins = 0;
-    player.score = 0;
-  }
-
-  return random_simulation(state, 0);
 }

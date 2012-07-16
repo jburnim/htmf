@@ -26,6 +26,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef GAME_H_
+#define GAME_H_
+
 #include <vector>
 
 const int M = 13;
@@ -72,10 +75,12 @@ void compute_moves(const state_t& state,
                    const int player_idx,
                    std::vector<move_t>* moves);
 
-state_t random_simulation(const state_t& st, const int player_idx);
+void random_simulation(state_t* st);
 
 void random_init_board(board_t board);
 
-state_t random_game_result(const int n_players, const int n_penguins);
-
 void read_state(const char* desc[N], state_t* state);
+
+void print_state(const state_t& state);
+
+#endif  // GAME_H_
