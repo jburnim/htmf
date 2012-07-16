@@ -51,33 +51,71 @@ const int MAX_PENGUINS = 4;
 
 struct player_t {
   pos_t penguin[MAX_PENGUINS];
-  unsigned char n_played_penguins;
+  char n_played_penguins;
   unsigned char score;
 };
 
 struct state_t {
   board_t board;
   player_t player[MAX_PLAYERS];
+  char n_players;
+  char n_penguins;
+  char cur_player_idx;
 };
 
 const int NUM_DIRS = 6;
 const pos_t dirs[NUM_DIRS] = { {+1,0}, {0,+1}, {-1,+1}, {-1,0}, {0,-1}, {+1,-1} };
 
 struct move_t {
+  char player_idx;   // Index of player who moved.
   char penguin_idx;  // Index of penguin to be moved.
   pos_t dest;        // Destination of the penguin.
 };
 
-void print_state(const int n_players,
-                 const int n_penguins,
-                 const state_t& state)
-{
+
+int compute_utility(const state_t& state, const int player_idx) {
+  int max_other_score = 0;
+  for (int i = 0; i < state.n_players; i++) {
+    if (i != player_idx) {
+      if (state.player[i].score > max_other_score) {
+        max_other_score = state.player[i].score;
+      }
+    }
+  }
+
+  return (state.player[player_idx].score - max_other_score);
+}
+
+
+void make_move(move_t move, state_t* state) {
+  player_t& player = state->player[move.player_idx];
+
+  // Update penguin position.
+  player.penguin[move.penguin_idx] = move.dest;
+
+  // Update board and score.
+  assert(state->board[move.dest.x][move.dest.y]);
+  player.score += state->board[move.dest.x][move.dest.y];
+  state->board[move.dest.x][move.dest.y] = 0;
+
+  // If necessary, update n_played_penguins.
+  if (move.penguin_idx >= player.n_played_penguins) {
+    assert(move.penguin_idx == player.n_played_penguins);
+    player.n_played_penguins++;
+  }
+
+  // Update the current player.
+  state->cur_player_idx = (state->cur_player_idx + 1) % state->n_players;
+}
+
+
+void print_state(const state_t& state) {
   for (int y = N-1; y >= 0; y--) {
     for (int x = 0; x < M; x++) {
       bool found = false;
-      for (int i = 0; i < n_players; i++) {
+      for (int i = 0; i < state.n_players; i++) {
         const player_t& player = state.player[i];
-        for (int j = 0; j < n_penguins; j++) {
+        for (int j = 0; j < player.n_played_penguins; j++) {
           if ((player.penguin[j].x == x) && (player.penguin[j].y == y)) {
             printf("%c ", (char)('A' + i));
             found = true;
@@ -92,40 +130,57 @@ void print_state(const int n_players,
   }
 }
 
-void compute_moves(const int n_penguins,
-                   const state_t& state,
-                   const player_t& player,
+void compute_moves(const state_t& state,
+                   const int player_idx,
                    vector<move_t>* moves)
 {
-  move_t move;
-  for (int i = 0; i < n_penguins; i++) {
-    move.penguin_idx = i;
-    pos_t p = player.penguin[i];
-    for (int j = 0; j < NUM_DIRS; j++) {
-      move.dest = p;
-      while (true) {
-        move.dest.x += dirs[j].x;
-        move.dest.y += dirs[j].y;
-        if (state.board[move.dest.x][move.dest.y]) {
+  const player_t& player = state.player[player_idx];
+
+  if (player.n_played_penguins == state.n_penguins) {
+    // All penguins have been placed -- try moving them.
+    move_t move;
+    move.player_idx = player_idx;
+
+    for (int i = 0; i < state.n_penguins; i++) {
+      move.penguin_idx = i;
+      pos_t p = player.penguin[i];
+      for (int j = 0; j < NUM_DIRS; j++) {
+        move.dest = p;
+        while (true) {
+          move.dest.x += dirs[j].x;
+          move.dest.y += dirs[j].y;
+          if (state.board[move.dest.x][move.dest.y]) {
+            moves->push_back(move);
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+  } else {
+    // Not all penguins have been placed -- place the next one.
+    move_t move;
+    move.player_idx = player_idx;
+    move.penguin_idx = player.n_played_penguins;
+
+    for (move.dest.x = 0; move.dest.x < M; move.dest.x++) {
+      for (move.dest.y = 0; move.dest.y < N; move.dest.y++) {
+        if (state.board[move.dest.x][move.dest.y] == 1) {
           moves->push_back(move);
-        } else {
-          break;
         }
       }
     }
   }
 }
 
-void read_state(const char* desc[N],
-                state_t* state,
-                int* const n_players,
-                int* const n_penguins)
-{
+
+void read_state(const char* desc[N], state_t* state) {
   board_t& board = state->board;
   for (int i = 0; i < MAX_PLAYERS; i++) {
     state->player[i].n_played_penguins = 0;
   }
-  *n_players = 0;
+  state->n_players = 0;
 
   for (int x = 0; x < M; x++) {
     for (int y = 0; y < N; y++) {
@@ -135,21 +190,21 @@ void read_state(const char* desc[N],
         board[x][y] = 0;
       }
       if ((desc[N-y-1][x] >= 'A') && (desc[N-y-1][x] <= 'D')) {
-        int i = desc[N-y-1][x] - 'A';
+        char i = desc[N-y-1][x] - 'A';
         player_t& player = state->player[i];
         player.penguin[player.n_played_penguins].x = x;
         player.penguin[player.n_played_penguins].y = y;
         player.n_played_penguins++;
-        *n_players = std::max(*n_players, i+1);
+        state->n_players = std::max(state->n_players, (char)(i+1));
       }
     }
   }
 
-  assert(*n_players > 0);
-  *n_penguins = state->player[0].n_played_penguins;
-  for (int i = 1;  i < *n_players; i++) {
-    *n_penguins = std::max(*n_penguins,
-                           (int)state->player[i].n_played_penguins);
+  assert(state->n_players > 0);
+  state->n_penguins = state->player[0].n_played_penguins;
+  for (int i = 1;  i < state->n_players; i++) {
+    state->n_penguins = std::max(state->n_penguins,
+                                 state->player[i].n_played_penguins);
   }
 }
 
@@ -168,10 +223,10 @@ void test_compute_moves() {
                             "             ",
                             "             ",
                             "             " };
-  read_state(board1, &state, &n_players, &n_penguins);
+  read_state(board1, &state);
 
   vector<move_t> moves;
-  compute_moves(n_penguins, state, state.player[0], &moves);
+  compute_moves(state, 0, &moves);
   assert(moves.size() == 6);
   for (int i = 0; i < moves.size(); i++) {
     printf("%d: -> (%d,%d)\n",
@@ -202,58 +257,25 @@ void test_compute_moves() {
 //   (+1,0),(0,+1),(-1,+1),(-1,0),(0,-1),(+1,-1)
 
 
-state_t random_simulation(const int n_players,
-                          const int n_penguins,
-                          const state_t& st,
-                          const int player_idx)
-{
+state_t random_simulation(const state_t& st, const int player_idx) {
   state_t state = st;
+  const int n_players = state.n_players;
+  const int n_penguins = state.n_penguins;
 
   // Play randomly until no player can move.
   for (int i = player_idx, turns_since_move = 0; ; i = (i+1)%n_players) {
     player_t& player = state.player[i];
 
-    if (player.n_played_penguins < n_penguins) {
-      // Place a penguin randomly on the board.
-
-      // Find possible initial positions.  (We could do this faster,
-      // but with less generality, by using the fact that there are
-      // thirty 1's.)
-      vector<pos_t> init_positions;
-      for (pos_t p = {0, 0}; p.x < M; p.x++) {
-        for (p.y = 0; p.y < N; p.y++) {
-          if (state.board[p.x][p.y] == 1) {
-            init_positions.push_back(p);
-          }
-        }
-      }
-
-      // Randomly place penguin in one such position.
-      int pos_idx = int(rand()/(double)RAND_MAX * init_positions.size());
-      pos_t pos = init_positions[pos_idx];
-      player.penguin[player.n_played_penguins++] = pos;
-      player.score += 1;
-      state.board[pos.x][pos.y] = 0;
-
-      turns_since_move = 0;
-
+    // Randomly move one penguin.
+    vector<move_t> moves;
+    compute_moves(state, i, &moves);
+    if (moves.size() == 0) {
+      if (++turns_since_move == n_players)
+        break;
     } else {
-      // Randomly move one penguin.
-      vector<move_t> moves;
-      compute_moves(n_penguins, state, player, &moves);
-      if (moves.size() == 0) {
-        if (++turns_since_move == n_players)
-          break;
-      } else {
-        move_t move = moves[int(rand()/(double)RAND_MAX * moves.size())];
-
-        player.penguin[move.penguin_idx] = move.dest;
-        assert(state.board[move.dest.x][move.dest.y]);
-        player.score += state.board[move.dest.x][move.dest.y];
-        state.board[move.dest.x][move.dest.y] = 0;
-
-        turns_since_move = 0;
-      }
+      move_t move = moves[int(rand()/(double)RAND_MAX * moves.size())];
+      make_move(move, &state);
+      turns_since_move = 0;
     }
   }
 
@@ -299,6 +321,8 @@ void init_board(board_t board) {
 
 state_t random_game_result(const int n_players, const int n_penguins) {
   state_t state;
+  state.n_players = n_players;
+  state.n_penguins = n_penguins;
 
   // Random board.
   init_board(state.board);
@@ -310,9 +334,8 @@ state_t random_game_result(const int n_players, const int n_penguins) {
     player.score = 0;
   }
 
-  return random_simulation(n_players, n_penguins, state, 0);
+  return random_simulation(state, 0);
 }
-
 
 
 int main(int argc, char* argv[]) {
