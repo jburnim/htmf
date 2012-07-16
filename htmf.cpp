@@ -27,8 +27,12 @@
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "game.h"
+#include "uct.h"
 
 #include <cassert>
+
+const int NUM_TRIALS = 1;
+const int NUM_UCT_TRIALS = 100000;
 
 void test_compute_moves() {
   state_t state;
@@ -80,23 +84,63 @@ state_t random_game_result(const int n_players, const int n_penguins) {
 }
 
 
+state_t uct_game_result(const int n_players, const int n_penguins) {
+  state_t state;
+  state.n_players = n_players;
+  state.n_penguins = n_penguins;
+  state.cur_player_idx = 0;
+
+  // Random board.
+  random_init_board(state.board);
+
+  // Initialize players.
+  for (int i = 0; i < n_players; i++) {
+    player_t& player = state.player[i];
+    player.n_played_penguins = 0;
+    player.score = 0;
+
+    for (int j = 0; j < n_penguins; j++) {
+      player.penguin[j].x = -1;
+      player.penguin[j].y = -1;
+    }
+  }
+
+  print_state(state);
+
+  move_t move;
+  while (uct_move(NUM_UCT_TRIALS, state, &move)) {
+    const player_t& player = state.player[move.player_idx];
+    printf("\n%d: (%d,%d) -> (%d,%d)\n\n",
+           move.player_idx,
+           player.penguin[move.penguin_idx].x,
+           player.penguin[move.penguin_idx].y,
+           move.dest.x, move.dest.y);
+
+    make_move(move, &state);
+
+    print_state(state);
+  }
+
+  return state;
+}
+
+
 int main(int argc, char* argv[]) {
   const int n_players = atoi(argv[1]);
   const int n_penguins = atoi(argv[2]);
 
   srand(time(NULL));
 
-  const int TRIALS = 100000;
   int total_scores[MAX_PLAYERS] = { 0, 0, 0, 0 };
-  for (int i = 0; i < TRIALS; i++) {
-    state_t res = random_game_result(n_players, n_penguins);
+  for (int i = 0; i < NUM_TRIALS; i++) {
+    state_t res = uct_game_result(n_players, n_penguins);
     for (int j = 0; j < n_players; j++) {
       total_scores[j] += res.player[j].score;
     }
   }
 
   for (int j = 0; j < n_players; j++) {
-    printf("%lf ", total_scores[j] / (double)TRIALS);
+    printf("%lf ", total_scores[j] / (double)NUM_TRIALS);
   }
   printf("\n");
 
