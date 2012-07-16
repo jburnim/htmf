@@ -26,56 +26,56 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "game.h"
+#include <vector>
 
-#include <cassert>
+const int M = 13;
+const int N = 10;
 
-void test_compute_moves() {
-  state_t state;
-  int n_players, n_penguins;
+typedef char board_t[M][N];
 
-  const char* board1[N] = { "             ",
-                            "       21    ",
-                            "       1A1   ",
-                            "        12   ",
-                            "     A       ",
-                            "             ",
-                            "        A    ",
-                            "             ",
-                            "             ",
-                            "             " };
-  read_state(board1, &state);
+struct pos_t {
+  char x;
+  char y;
+};
 
-  std::vector<move_t> moves;
-  compute_moves(state, 0, &moves);
-  assert(moves.size() == 6);
-  for (int i = 0; i < moves.size(); i++) {
-    printf("%d: -> (%d,%d)\n",
-           moves[i].penguin_idx, moves[i].dest.x, moves[i].dest.y);
-  }
-  printf("\n");
-}
+const int MAX_PLAYERS = 4;
+const int MAX_PENGUINS = 4;
 
+struct player_t {
+  pos_t penguin[MAX_PENGUINS];
+  char n_played_penguins;
+  unsigned char score;
+};
 
-int main(int argc, char* argv[]) {
-  const int n_players = atoi(argv[1]);
-  const int n_penguins = atoi(argv[2]);
+struct state_t {
+  board_t board;
+  player_t player[MAX_PLAYERS];
+  char n_players;
+  char n_penguins;
+  char cur_player_idx;
+};
 
-  srand(time(NULL));
+const int NUM_DIRS = 6;
+const pos_t dirs[NUM_DIRS] = { {+1,0}, {0,+1}, {-1,+1}, {-1,0}, {0,-1}, {+1,-1} };
 
-  const int TRIALS = 100000;
-  int total_scores[MAX_PLAYERS] = { 0, 0, 0, 0 };
-  for (int i = 0; i < TRIALS; i++) {
-    state_t res = random_game_result(n_players, n_penguins);
-    for (int j = 0; j < n_players; j++) {
-      total_scores[j] += res.player[j].score;
-    }
-  }
+struct move_t {
+  char player_idx;   // Index of player who moved.
+  char penguin_idx;  // Index of penguin to be moved.
+  pos_t dest;        // Destination of the penguin.
+};
 
-  for (int j = 0; j < n_players; j++) {
-    printf("%lf ", total_scores[j] / (double)TRIALS);
-  }
-  printf("\n");
+int compute_utility(const state_t& state, const int player_idx);
 
-  return 0;
-}
+void make_move(move_t move, state_t* state);
+
+void compute_moves(const state_t& state,
+                   const int player_idx,
+                   std::vector<move_t>* moves);
+
+state_t random_simulation(const state_t& st, const int player_idx);
+
+void random_init_board(board_t board);
+
+state_t random_game_result(const int n_players, const int n_penguins);
+
+void read_state(const char* desc[N], state_t* state);
