@@ -62,7 +62,7 @@ void make_move(move_t move, state_t* state) {
 
   assert(move.penguin_idx >= 0);
   assert(move.penguin_idx < state->n_penguins);
-  assert(move.penguin_idx <= state->player[move.penguin_idx].n_played_penguins);
+  assert(move.penguin_idx <= state->player[move.player_idx].n_played_penguins);
 
   assert(move.dest.x >= 0);
   assert(move.dest.y >= 0);
