@@ -49,37 +49,32 @@ void delete_tree(node_t* n) {
 
 // Returns true if children were expanded.  Returns false if this is a
 // terminal node.
-bool expand(const state_t& state, node_t* const n) {
+void expand(const state_t& state, node_t* const n) {
   assert(n->child == NULL);
 
-  for (int i = 0; i < state.n_players; i++) {
-    const int player_idx = (state.cur_player_idx + i) % state.n_players;
-
-    // Compute legal moves.
-    vector<move_t> moves;
-    compute_moves(state, player_idx, &moves);
-    if (moves.size() == 0)
-      continue;
-
-    // Expand children.
-    node_t** prev = &n->child;
-    for (int j = 0; j < moves.size(); j++) {
-      // Allocate new child node.
-      node_t* p = new node_t;
-      p->n_visits = p->total_score = 0;
-      p->child = p->next = NULL;
-      p->move = moves[j];
-
-      // Update previous child/next link.
-      *prev = p;
-      prev = &p->next;
-    }
-
-    return true;
+  if (state.cur_player_idx == NO_PLAYER) {
+    // Nothing to do -- game is over.
+    return;
   }
 
-  // No legal moves for any player -- node is terminal.
-  return false;
+  // Compute legal moves.
+  vector<move_t> moves;
+  compute_moves(state, state.cur_player_idx, &moves);
+  assert(moves.size() > 0);
+
+  // Expand children.
+  node_t** prev = &n->child;
+  for (int j = 0; j < moves.size(); j++) {
+    // Allocate new child node.
+    node_t* p = new node_t;
+    p->n_visits = p->total_score = 0;
+    p->child = p->next = NULL;
+    p->move = moves[j];
+
+    // Update previous child/next link.
+    *prev = p;
+    prev = &p->next;
+  }
 }
 
 
@@ -146,7 +141,10 @@ void uct_once(node_t* n, state_t* state) {
 }
 
 
-bool uct_move(const int n_moves, const state_t& state, move_t* move) {
+void uct_move(const int n_moves, const state_t& state, move_t* move) {
+  assert(state.cur_player_idx >= 0);
+  assert(state.cur_player_idx < state.n_players);
+
   bool ret = false;
   node_t* root = new node_t;
   root->n_visits = root->total_score = -1;
@@ -159,24 +157,18 @@ bool uct_move(const int n_moves, const state_t& state, move_t* move) {
     uct_once(root, &s);
   }
 
-  if (!is_terminal(root)) {
-    // Select the best move we've found.
-    ret = true;
-    double best = -std::numeric_limits<double>::max();
-    for (node_t* n = root->child; n != NULL; n = n->next) {
-      double expected_val = n->n_visits ? (n->total_score / (double)n->n_visits) : 0.0;
-      if (expected_val > best) {
-        best = expected_val;
-        *move = n->move;
-      }
+  // Select the best move we've found.
+  double best = -std::numeric_limits<double>::max();
+  for (node_t* n = root->child; n != NULL; n = n->next) {
+    double expected_val = n->n_visits ? (n->total_score / (double)n->n_visits) : 0.0;
+    if (expected_val > best) {
+      best = expected_val;
+      *move = n->move;
     }
-
-    printf("\nexpected value: %lf\n", best);
   }
+
+  printf("\nexpected value: %lf\n", best);
 
   // Clean up the tree.
   delete_tree(root);
-
-  // Done.
-  return ret;
 }

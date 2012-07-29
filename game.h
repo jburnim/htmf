@@ -50,12 +50,14 @@ struct player_t {
   unsigned char score;
 };
 
+const char NO_PLAYER = (char)-1;
+
 struct state_t {
   board_t board;
   player_t player[MAX_PLAYERS];
   char n_players;
   char n_penguins;
-  char cur_player_idx;
+  char cur_player_idx;  // NO_PLAYER if game is over.
 };
 
 const int NUM_DIRS = 6;

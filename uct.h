@@ -51,6 +51,6 @@ struct node_t {
   move_t move;
 };
 
-bool uct_move(const int n_moves, const state_t& state, move_t* move);
+void uct_move(const int n_moves, const state_t& state, move_t* move);
 
 #endif  // UCT_H_

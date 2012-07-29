@@ -32,7 +32,7 @@
 #include <cassert>
 
 const int NUM_TRIALS = 1;
-const int NUM_UCT_TRIALS = 100000;
+const int NUM_UCT_TRIALS = 10000;
 
 void test_compute_moves() {
   state_t state;
@@ -108,7 +108,9 @@ state_t uct_game_result(const int n_players, const int n_penguins) {
   print_state(state);
 
   move_t move;
-  while (uct_move(NUM_UCT_TRIALS, state, &move)) {
+  while (state.cur_player_idx != NO_PLAYER) {
+    uct_move(NUM_UCT_TRIALS, state, &move);
+
     const player_t& player = state.player[move.player_idx];
     printf("\n%d: (%d,%d) -> (%d,%d)\n\n",
            move.player_idx,

@@ -58,6 +58,7 @@ void make_move(move_t move, state_t* state) {
 
   assert(move.player_idx >= 0);
   assert(move.player_idx < state->n_players);
+  assert(move.player_idx == state->cur_player_idx);
 
   assert(move.penguin_idx >= 0);
   assert(move.penguin_idx < state->n_penguins);
@@ -83,7 +84,23 @@ void make_move(move_t move, state_t* state) {
   }
 
   // Update the current player.
-  state->cur_player_idx = (state->cur_player_idx + 1) % state->n_players;
+  for (int i = 0; i < state->n_players; i++) {
+    state->cur_player_idx = (state->cur_player_idx + 1) % state->n_players;
+
+    // Does this player have legal moves?
+    //
+    // TODO: Could be more efficient here, by not allocating a new
+    // vector and by stopping after finding the first legal move.
+    vector<move_t> moves;
+    compute_moves(*state, state->cur_player_idx, &moves);
+    if (moves.size() > 0) {
+      // This player has moves, so he will move next.
+      return;
+    }
+  }
+
+  // No player has legal moves, so game is over.
+  state->cur_player_idx = NO_PLAYER;
 }
 
 
@@ -192,22 +209,17 @@ void random_simulation(state_t* state) {
   const int n_penguins = state->n_penguins;
 
   // Play randomly until no player can move.
-  int turns_since_move = 0;
-  while (true) {
-    int i = state->cur_player_idx;
-    player_t& player = state->player[i];
+  while (state->cur_player_idx != NO_PLAYER) {
+    player_t& player = state->player[state->cur_player_idx];
+
+    // Generate legal moves.
+    vector<move_t> moves;
+    compute_moves(*state, state->cur_player_idx, &moves);
+    assert(moves.size() > 0);
 
     // Randomly move one penguin.
-    vector<move_t> moves;
-    compute_moves(*state, i, &moves);
-    if (moves.size() == 0) {
-      if (++turns_since_move == n_players)
-        break;
-    } else {
-      move_t move = moves[int(rand()/(double)RAND_MAX * moves.size())];
-      make_move(move, state);
-      turns_since_move = 0;
-    }
+    move_t move = moves[int(rand()/(double)RAND_MAX * moves.size())];
+    make_move(move, state);
   }
 }
 
