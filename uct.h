@@ -29,6 +29,8 @@
 #ifndef UCT_H_
 #define UCT_H_
 
+#define DEBUG_SCORE
+
 #include "game.h"
 
 const double UCT_FACTOR = 3.0;
@@ -49,6 +51,10 @@ struct node_t {
 
   // What move brought us to this position?
   move_t move;
+
+#ifdef DEBUG_SCORE
+  int total_scores[4];
+#endif  // DEBUG_UTILITY
 };
 
 void uct_move(const int n_moves, const state_t& state, move_t* move);

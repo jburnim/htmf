@@ -68,9 +68,13 @@ void expand(const state_t& state, node_t* const n) {
     // Allocate new child node.
     node_t* p = new node_t;
     p->n_visits = p->total_score = 0;
+#ifdef DEBUG_SCORE
+    p->total_scores[0] = p->total_scores[1] =
+      p->total_scores[2] = p->total_scores[3] = 0;
+#endif
+
     p->child = p->next = NULL;
     p->move = moves[j];
-
     // Update previous child/next link.
     *prev = p;
     prev = &p->next;
@@ -138,6 +142,12 @@ void uct_once(node_t* n, state_t* state) {
   // Update our stats, given the simulated game result.
   n->n_visits++;
   n->total_score += compute_utility(*state, n->move.player_idx);
+
+#ifdef DEBUG_SCORE
+  for (int i = 0; i < state->n_players; i++) {
+    n->total_scores[i] += compute_utility(*state, i);
+  }
+#endif
 }
 
 
@@ -159,15 +169,25 @@ void uct_move(const int n_moves, const state_t& state, move_t* move) {
 
   // Select the best move we've found.
   double best = -std::numeric_limits<double>::max();
+  node_t* best_n = NULL;
   for (node_t* n = root->child; n != NULL; n = n->next) {
     double expected_val = n->n_visits ? (n->total_score / (double)n->n_visits) : 0.0;
     if (expected_val > best) {
       best = expected_val;
+      best_n = n;
       *move = n->move;
     }
   }
 
-  printf("\nexpected value: %lf\n", best);
+#ifdef DEBUG_SCORE
+  if (best_n->n_visits) {
+    printf("\nExpected scores:");
+    for (int i = 0; i < state.n_players; i++) {
+      printf("  %+.4lf", best_n->total_scores[i] / (double)best_n->n_visits);
+    }
+    printf("\n");
+  }
+#endif
 
   // Clean up the tree.
   delete_tree(root);
