@@ -30,6 +30,9 @@
 #include "uct.h"
 
 #include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 const int NUM_TRIALS = 1;
 const int NUM_UCT_TRIALS = 10000;
