@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HTMF</title>
+    <script type="text/javascript">
+      function handleMessage(msg) {
+        alert('Received:\n' + msg.data);
+      }
+
+      function postMessage() {
+        naclModule = document.getElementById('nacl_module');
+        naclModule.postMessage('hello');
+      }
+    </script>
+  </head>
+  <body>
+
+    <div id="embed_container">
+      <script type="text/javascript">
+        var container = document.getElementById('embed_container');
+        container.addEventListener('message', handleMessage, true);
+      </script>
+
+      <embed name='nacl_module' id='nacl_module' width='1' height='1'
+             src='build/htmf.nmf' type='application/x-nacl'/>
+    </div>
+
+    <div>
+      <table>
+        <button type='button' onclick='postMessage()'>PostMessage</button>
+      </table>
+    </div>
+
+  </body>
+</html>
