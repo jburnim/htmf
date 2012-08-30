@@ -2,9 +2,12 @@
 <html>
   <head>
     <title>HTMF</title>
+
     <script type="text/javascript">
-      function handleMessage(msg) {
-        alert('Received:\n' + msg.data);
+      function handleMessage(msgEvent) {
+        alert('Received:\n' + msgEvent.data);
+        msg = eval('(' + msgEvent.data + ')');
+        updateBoard('board', msg.board);
       }
 
       function postMessage() {
@@ -12,8 +15,21 @@
         naclModule.postMessage('hello');
       }
     </script>
+
+    <script type="text/javascript" src="hex.js"></script>
   </head>
   <body>
+
+    <svg id="board" xmlns="http://www.w3.org/2000/svg" version="1.1">
+    </svg>
+
+    <script type="text/javascript">
+      function onBoardClick(x, y) {
+        alert('(' + x + ', ' + y + ')');
+        postMessage();
+      }
+      makeBoard('board', 50, 'onBoardClick');
+    </script>
 
     <div id="embed_container">
       <script type="text/javascript">
