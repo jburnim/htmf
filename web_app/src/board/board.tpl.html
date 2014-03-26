@@ -1,0 +1,18 @@
+<svg id="board" xmlns="http://www.w3.org/2000/svg" version="1.1"
+     viewbox="0 0 100 100" with="600" height="600">
+  <g ng-repeat="row in game.board">
+    <g ng-repeat="tile in row">
+      <polygon ng-attr-points="{{points(tile.r,tile.c)}}"
+               fill="lightsteelblue"
+               stroke-width="0.5%"
+               blah="{{tile.tile}}"
+               stroke="black">
+      </polygon>
+      <text x="{{center(tile.r,tile.c).x}}" y="{{center(tile.r,tile.c).y}}"
+            text-anchor="middle" alignment-baseline="middle"
+            font-size="{{RADIUS}}px">
+        {{tile.tile}}
+      </text>
+   </g>
+  </g>
+</svg>
