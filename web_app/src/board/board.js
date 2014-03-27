@@ -95,8 +95,11 @@ angular.module('myApp', [])
             ret += (center.x + $scope.RADIUS * Math.cos(ang)) + ",";
             ret += (center.y + $scope.RADIUS * Math.sin(ang)) + " ";
           }
-          console.log("points(" + r + "," + c + "): " + ret)
           return ret;
+        };
+
+        $scope.click = function(r, c) {
+          $scope.game.board[r][c].tile = undefined;
         };
       },
       templateUrl: 'board/board.tpl.html'
