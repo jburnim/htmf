@@ -60,13 +60,17 @@ angular.module('myApp', [])
           };
 
           this.movePiece = function(piece, r, c) {
-            console.assert(this.currentPlayer == piece.player);
+            console.assert(this.currentPlayer === piece.player);
             console.assert(this.board[r][c].tile);
             // TODO(jburnim): Check that the move is legal.
+            if ((piece.r !== undefined) && (piece.c !== undefined)) {
+              this.board[piece.r][piece.c].piece = undefined;
+            }
             this.scores[piece.player] += this.board[r][c].tile;
             this.board[r][c].tile = undefined;
             piece.r = r;
             piece.c = c;
+            this.board[r][c].piece = piece;
             this.currentPlayer = (this.currentPlayer + 1) % this.numberOfPlayers;
           };
 
@@ -98,8 +102,42 @@ angular.module('myApp', [])
           return ret;
         };
 
+        $scope.getColorForPlayer = function(player) {
+          return ['red', 'forestgreen', 'blue', 'yellow'][player];
+        };
+
+        $scope.getSymbolForPlayer = function(player) {
+          return String.fromCharCode(65 + player);
+        };
+
+        $scope.isSelected = function(r, c) {
+          return $scope.selectedPiece
+            && ($scope.selectedPiece === $scope.game.board[r][c].piece);
+        };
+
         $scope.click = function(r, c) {
-          $scope.game.board[r][c].tile = undefined;
+          if ($scope.game.board[r][c].tile !== undefined) {
+            // Clicked on a tile.
+
+            if ($scope.selectedPiece) {
+              // Attempt to move the selected piece to this tile.
+              $scope.game.movePiece($scope.selectedPiece, r, c);
+              $scope.selectedPiece = undefined;
+
+            } else {
+              // Initial placement of a piece on the tile.
+              var pieces = $scope.game.pieces[$scope.game.currentPlayer];
+              for (var i = 0; i < pieces.length; i++) {
+                if ((pieces[i].r === undefined) && (pieces[i].c === undefined)) {
+                  $scope.game.movePiece(pieces[i], r, c);
+                  break;
+                }
+              }
+            }
+          } else if ($scope.game.board[r][c].piece) {
+            // Selecting a piece.
+            $scope.selectedPiece = $scope.game.board[r][c].piece;
+          }
         };
       },
       templateUrl: 'board/board.tpl.html'

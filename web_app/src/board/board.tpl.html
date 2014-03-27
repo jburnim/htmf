@@ -2,17 +2,25 @@
      viewbox="0 0 100 100" with="600" height="600">
   <g ng-repeat="row in game.board">
     <g ng-repeat="tile in row">
-      <g ng-show="tile.tile !== undefined"
+      <g ng-if="(tile.tile !== undefined) || tile.piece"
          ng-click="click(tile.r,tile.c)">
         <polygon ng-attr-points="{{points(tile.r,tile.c)}}"
                  fill="lightsteelblue"
                  stroke-width="0.4%"
-                 stroke="black">
+                 stroke="{{isSelected(tile.r,tile.c) ? getColorForPlayer(tile.piece.player) : 'black'}}">
         </polygon>
-        <text x="{{center(tile.r,tile.c).x}}" y="{{center(tile.r,tile.c).y}}"
+        <text ng-if="tile.tile !== undefined"
+              x="{{center(tile.r,tile.c).x}}" y="{{center(tile.r,tile.c).y}}"
               text-anchor="middle" alignment-baseline="middle"
               font-size="{{RADIUS}}px">
           {{tile.tile}}
+        </text>
+        <text ng-if="tile.piece"
+              x="{{center(tile.r,tile.c).x}}" y="{{center(tile.r,tile.c).y}}"
+              text-anchor="middle" alignment-baseline="middle"
+              font-size="{{RADIUS}}px"
+              fill="{{getColorForPlayer(tile.piece.player)}}">
+          {{getSymbolForPlayer(tile.piece.player)}}
         </text>
       </g>
     </g>
