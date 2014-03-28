@@ -1,6 +1,6 @@
 <svg id="board" xmlns="http://www.w3.org/2000/svg" version="1.1"
      viewbox="0 0 100 100" with="600" height="600">
-  <g ng-repeat="row in game.board">
+  <g ng-repeat="row in Game.board">
     <g ng-repeat="tile in row">
       <g ng-if="(tile.tile !== undefined) || tile.piece"
          ng-click="click(tile.r,tile.c)">
