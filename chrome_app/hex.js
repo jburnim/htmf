@@ -52,6 +52,8 @@ function updateBoard(boardSvgId, boardSpec) {
 }
 
 function makeBoard(boardSvgId, radius, clickHandler) {
+  pad = 2
+  radius = (100 - 2*pad) / (8 * 3.5/2)
   var X_STEP = {
     x: Math.sqrt(3) * radius,
     y: 0
@@ -61,8 +63,8 @@ function makeBoard(boardSvgId, radius, clickHandler) {
     y: -1.5 * radius
   };
   var ORIGIN = {
-    x: -4*Math.sqrt(3) * radius + 10,
-    y: 13 * radius + 10
+    x: -4*Math.sqrt(3) * radius + pad,
+    y: 13 * radius + pad
   };
 
   svg = document.getElementById(boardSvgId);
@@ -77,11 +79,12 @@ function makeBoard(boardSvgId, radius, clickHandler) {
       var hex = createHexagon(center, radius);
       hex.setAttribute('id', 'board' + x + '' + y );
       hex.setAttribute('fill', 'lightsteelblue');
-      hex.setAttribute('stroke-width', 3);
+      hex.setAttribute('stroke-width', '0.5%');
       hex.setAttribute('stroke', 'black');
       hex.setAttribute('onclick', clickHandler + '(' + x + ',' + y + ');');
       svg.appendChild(hex);
 
+      /*
       var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('id', 'label' + x + '' + y);
       label.setAttribute('x', center.x);
@@ -91,6 +94,7 @@ function makeBoard(boardSvgId, radius, clickHandler) {
       label.setAttribute('font-size', radius + 'px');
       label.setAttribute('onclick', clickHandler + '(' + x + ',' + y + ');');
       svg.appendChild(label);
+      */
     }
   }
 }
