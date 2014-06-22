@@ -1,4 +1,4 @@
-angular.module('myApp', [])
+angular.module('myApp', ['pasvaz.bindonce'])
   .factory('Game', function() {
     var Game = function() {
       var N = 8;
@@ -18,7 +18,7 @@ angular.module('myApp', [])
             var rnd = Math.floor(Math.random() * numRemainingTiles);
             for (tile in remainingTiles) {
               if (rnd < remainingTiles[tile]) {
-                board[r][c] = { r: r, c: c, tile: tile };
+                board[r][c] = { r: r, c: c, tile: parseInt(tile) };
                 remainingTiles[tile] -= 1;
                 numRemainingTiles -= 1;
                 break;

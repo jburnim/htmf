@@ -1,7 +1,7 @@
 <svg id="board" xmlns="http://www.w3.org/2000/svg" version="1.1"
-     viewbox="0 0 100 100" with="600" height="600">
-  <g ng-repeat="row in Game.board">
-    <g ng-repeat="tile in row">
+     viewbox="0 0 100 100" width="600" height="600">
+  <g bindone ng-repeat="row in Game.board">
+    <g bindonce ng-repeat="tile in row">
       <g ng-if="(tile.tile !== undefined) || tile.piece"
          ng-click="click(tile.r,tile.c)">
         <polygon ng-attr-points="{{points(tile.r,tile.c)}}"
@@ -9,13 +9,13 @@
                  stroke-width="0.4%"
                  stroke="{{isSelected(tile.r,tile.c) ? getColorForPlayer(tile.piece.player) : 'black'}}">
         </polygon>
-        <text ng-if="tile.tile !== undefined"
+        <text ng-show="tile.tile !== undefined"
               x="{{center(tile.r,tile.c).x}}" y="{{center(tile.r,tile.c).y}}"
               text-anchor="middle" alignment-baseline="middle"
               font-size="{{RADIUS}}px">
           {{tile.tile}}
         </text>
-        <text ng-if="tile.piece"
+        <text ng-show="tile.piece"
               x="{{center(tile.r,tile.c).x}}" y="{{center(tile.r,tile.c).y}}"
               text-anchor="middle" alignment-baseline="middle"
               font-size="{{RADIUS}}px"
