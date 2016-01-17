@@ -39,13 +39,19 @@ function updateBoard(boardSvgId, boardSpec) {
     for (var x = X_RANGE[y][0]; x <= X_RANGE[y][1]; x++) {
       var hex = document.getElementById('board' + x + '' + y);
       var label = document.getElementById('label' + x + '' + y);
-      if (boardSpec[y][x] == '0') {
+      var r = y - 1;
+      var c = x - X_RANGE[y][0];
+      if ('tile' in boardSpec[r][c]) {
+        hex.setAttribute('visibility', 'visible');
+        label.setAttribute('fill', COLORS[boardSpec[r][c].tile]);
+        label.textContent = boardSpec[r][c].tile;
+      } else if ('piece' in boardSpec[r][c]) {
+        hex.setAttribute('visibility', 'visible');
+        label.setAttribute('fill', COLORS[boardSpec[r][c].piece]);
+        label.textContent = boardSpec[r][c].piece;
+      } else {
         hex.setAttribute('visibility', 'hidden');
         label.textContent = '';
-      } else {
-        hex.setAttribute('visibility', 'visible');
-        label.setAttribute('fill', COLORS[boardSpec[y][x]]);
-        label.textContent = boardSpec[y][x];
       }
     }
   }
@@ -81,10 +87,9 @@ function makeBoard(boardSvgId, radius, clickHandler) {
       hex.setAttribute('fill', 'lightsteelblue');
       hex.setAttribute('stroke-width', '0.5%');
       hex.setAttribute('stroke', 'black');
-      hex.setAttribute('onclick', clickHandler + '(' + x + ',' + y + ');');
+      hex.setAttribute('onclick', clickHandler + '(' + (y-1) + ',' + (x-X_RANGE[y][0]) + ');');
       svg.appendChild(hex);
 
-      /*
       var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.setAttribute('id', 'label' + x + '' + y);
       label.setAttribute('x', center.x);
@@ -92,10 +97,8 @@ function makeBoard(boardSvgId, radius, clickHandler) {
       label.setAttribute('text-anchor', 'middle');
       label.setAttribute('alignment-baseline', 'middle');
       label.setAttribute('font-size', radius + 'px');
-      label.setAttribute('onclick', clickHandler + '(' + x + ',' + y + ');');
+      label.setAttribute('onclick', clickHandler + '(' + (y-1) + ',' + (x-X_RANGE[y][0]) + ');');
       svg.appendChild(label);
-      */
     }
   }
 }
-

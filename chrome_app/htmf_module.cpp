@@ -61,22 +61,32 @@ private:
 };
 
 void HtmfInstance::HandleMessage(const pp::Var& var_message) {
+  std::string err;
+
   Json::Value msg;
   Json::Reader reader;
   if (!reader.parse(var_message.AsString(), msg)) {
-    std::cout << "Failed!";
+    err = "Failed to parse JSON";
   }
 
-  if (!msg["player"].isNull()
-      && (msg["player"].asInt() >= 0)
-      && (msg["player"].asInt() < state.n_players)) {
+  if (msg["player"].isNull()) {
+    goto missing_or_invalid_move;
+  }
 
+  if ((msg["player"].asInt() < 0)
+      || (msg["player"].asInt() >= state.n_players)) {
+    err = "player out of range";
+    goto missing_or_invalid_move;
+  }
+
+  if (!msg["to"]) {
+    // Pass -- nothing to do.
+    goto missing_or_invalid_move;
+  }
+
+
+  {
     const player_t& player = state.player[msg["player"].asInt()];
-
-    if (!msg["to"]) {
-      // Pass -- nothing to do.
-      goto missing_or_invalid_move;
-    }
 
     move_t move;
     int to_r = msg["to"]["r"].asInt();
@@ -89,7 +99,8 @@ void HtmfInstance::HandleMessage(const pp::Var& var_message) {
     if (!msg["from"]) {
       // Initial placement of piece.
       if (player.n_played_penguins >= state.n_penguins) {
-        goto missing_or_invalid_move;
+	err = "All penguins played, but missing from";
+	goto missing_or_invalid_move;
       }
       move.penguin_idx = player.n_played_penguins;
         
@@ -103,23 +114,29 @@ void HtmfInstance::HandleMessage(const pp::Var& var_message) {
       // Find which piece is at (from_x, from_y).
       move.penguin_idx = -1;
       for (int i = 0; i < state.n_penguins; i++) {
-        if ((player.penguin[i].x == from_x) && (player.penguin[i].y == from_y)) {
-          move.penguin_idx = i;
-        }
+	if ((player.penguin[i].x == from_x) && (player.penguin[i].y == from_y)) {
+	  move.penguin_idx = i;
+	}
       }
       if (move.penguin_idx == -1) {
-        goto missing_or_invalid_move;
+	err = "Illegal from";
+	goto missing_or_invalid_move;
       }
     }
     
+    if (!is_legal_move(move, state)) {
+      err = "Illegal move";
+      goto missing_or_invalid_move;
+    }
     if (!make_move(move, &state)) {
+      err = "Failed to make move";
       goto missing_or_invalid_move;
     }
   }
 
  missing_or_invalid_move:
   // Send the updated game state.
-  PostMessage(pp::Var(toJSON(state)));
+  PostMessage(pp::Var(toJSON(state, err)));
 
   while (state.cur_player_idx == 1) {
     // Now the AI must move.
@@ -127,7 +144,7 @@ void HtmfInstance::HandleMessage(const pp::Var& var_message) {
     uct_move(10000, state, &ai_move);
     make_move(ai_move, &state);
 
-    PostMessage(pp::Var(toJSON(state)));
+    PostMessage(pp::Var(toJSON(state, err)));
   }
 }
 

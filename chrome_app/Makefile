@@ -7,7 +7,7 @@
 
 VALID_TOOLCHAINS := newlib glibc pnacl
 
-NACL_SDK_ROOT = /Users/jburnim/nacl_sdk/pepper_34
+NACL_SDK_ROOT = /Users/jburnim/nacl_sdk/pepper_47
 
 include $(NACL_SDK_ROOT)/tools/common.mk
 

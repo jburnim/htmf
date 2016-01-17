@@ -40,6 +40,38 @@ typedef char board_t[M][N];
 struct pos_t {
   int8_t x;
   int8_t y;
+
+  pos_t& operator+=(const pos_t& b) {
+    this->x += b.x;
+    this->y += b.y;
+    return *this;
+  }
+
+  pos_t operator+(const pos_t& b) const {
+    pos_t ret = *this;
+    ret += b;
+    return ret;
+  }
+
+  pos_t& operator-=(const pos_t& b) {
+    this->x -= b.x;
+    this->y -= b.y;
+    return *this;
+  }
+
+  pos_t operator-(const pos_t& b) const {
+    pos_t ret = *this;
+    ret -= b;
+    return ret;
+  }
+
+  bool operator==(const pos_t& b) const {
+    return (this->x == b.x) && (this->y == b.y);
+  }
+
+  bool operator!=(const pos_t& b) const {
+    return !(*this == b);
+  }
 };
 
 const int MAX_PLAYERS = 4;
@@ -71,6 +103,8 @@ struct move_t {
 };
 
 int compute_utility(const state_t& state, const int player_idx);
+
+bool is_legal_move(const move_t& move, const state_t& state);
 
 bool make_move(move_t move, state_t* state);
 

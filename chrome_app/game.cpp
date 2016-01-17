@@ -53,6 +53,81 @@ int compute_utility(const state_t& state, const int player_idx) {
 }
 
 
+int8_t sign(int8_t x) {
+  if (x > 0) {
+    return 1;
+  } else if (x < 0) {
+    return -1;
+  } else {
+    return 0;
+  }
+}
+
+bool is_legal_move(const move_t& move, const state_t& state) {
+  const player_t& player = state.player[move.player_idx];
+
+  assert(move.player_idx >= 0);
+  assert(move.player_idx < state.n_players);
+  assert(move.player_idx == state.cur_player_idx);
+
+  assert(move.penguin_idx >= 0);
+  assert(move.penguin_idx < state.n_penguins);
+  assert(move.penguin_idx <= player.n_played_penguins);
+
+  assert(move.dest.x >= 1);
+  assert(move.dest.y >= 1);
+  assert(move.dest.x < M);
+  assert(move.dest.y < N);
+
+  // The destination must have a tile.
+  if (state.board[move.dest.x][move.dest.y] == 0) {
+    return false;
+  }
+
+  // Initial placement check.
+  pos_t src = player.penguin[move.penguin_idx];
+  if (player.n_played_penguins < state.n_penguins) {
+    if ((src.x != 0) || (src.y != 0)) {
+      return false;
+    }
+    if (move.penguin_idx != player.n_played_penguins) {
+      return false;
+    }
+    return true;
+  }
+
+  // Not an initial placement, so we must have a source.
+  if ((src.x == 0) || (src.y == 0)) {
+    return false;
+  }
+
+  // Source and destination must be different.
+  if (src == move.dest) {
+    return false;
+  }
+  // Compute the direction.
+  pos_t delta = move.dest - src;
+  pos_t dir = { sign(delta.x), sign(delta.y) };
+  // {+1, +1} and {-1, -1} are not legal directions.
+  if (dir.x == dir.y) {
+    return false;
+  }
+  // If x and y change, check that they change by the same absolute amount.
+  if (dir.x && dir.y) {
+    if (abs(delta.x) != abs(delta.y)) {
+      return false;
+    }
+  }
+  // Check that the path from src to dest is clear.
+  for (pos_t p = src + dir; p != move.dest; p += dir) {
+    if (state.board[p.x][p.y] == 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool make_move(move_t move, state_t* state) {
   player_t& player = state->player[move.player_idx];
 
@@ -64,8 +139,8 @@ bool make_move(move_t move, state_t* state) {
   assert(move.penguin_idx < state->n_penguins);
   assert(move.penguin_idx <= state->player[move.player_idx].n_played_penguins);
 
-  assert(move.dest.x >= 0);
-  assert(move.dest.y >= 0);
+  assert(move.dest.x >= 1);
+  assert(move.dest.y >= 1);
   assert(move.dest.x < M);
   assert(move.dest.y < N);
 

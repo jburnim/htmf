@@ -34,8 +34,8 @@
 
 #include "game.h"
 
-std::string toJSON(const state_t&);
+std::string toJSON(const state_t&, const std::string&);
 
-void toJSON(const state_t&, std::ostream&);
+void toJSON(const state_t&, const std::string&, std::ostream&);
 
 #endif  // SERVER_H_

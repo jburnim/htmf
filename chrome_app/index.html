@@ -4,16 +4,56 @@
     <title>HTMF</title>
 
     <script type="text/javascript">
+      var game = {
+        numberOfPlayers: 4,
+        currentPlayer: 0,
+        scores: [0, 0, 0, 0],
+        board: [
+          [ {}, {}, {}, {}, {}, {}, {}, {} ],
+          [ {}, {}, {}, {}, {}, {}, {} ],
+          [ {}, {}, {}, {}, {}, {}, {}, {} ],
+          [ {}, {}, {}, {}, {}, {}, {} ],
+          [ {}, {}, {}, {}, {}, {}, {}, {} ],
+          [ {}, {}, {}, {}, {}, {}, {} ],
+          [ {}, {}, {}, {}, {}, {}, {}, {} ],
+          [ {}, {}, {}, {}, {}, {}, {} ]
+        ]
+      };
+
+      var gameState = {
+        selected: undefined
+      };
+
+      function onBoardClick(r, c) {
+        if ('piece' in game.board[r][c]) {
+          gameState.selected = { r: r, c: c };
+        } else if ('selected' in gameState) {
+          var from = gameState.selected;
+          gameState.selected = undefined;
+          postMessage({
+            player: game.currentPlayer,
+            from: from,
+            to: { r: r, c: c }
+          })
+        } else {
+          postMessage({
+            player: game.currentPlayer,
+            to: { r: r, c: c }
+          })
+        }
+      }
+
       function handleMessage(msgEvent) {
-        alert('Received:\n' + msgEvent.data);
         msg = JSON.parse(msgEvent.data);
         console.log(msg);
+        game = msg;
         updateBoard('board', msg.board);
       }
 
-      function postMessage() {
+      function postMessage(msg) {
+        console.log(msg);
         naclModule = document.getElementById('nacl_module');
-        naclModule.postMessage('{}');
+        naclModule.postMessage(JSON.stringify(msg));
       }
     </script>
 
@@ -26,10 +66,6 @@
     </svg>
 
     <script type="text/javascript">
-      function onBoardClick(x, y) {
-        alert('(' + x + ', ' + y + ')');
-        postMessage();
-      }
       makeBoard('board', 50, 'onBoardClick');
     </script>
 
@@ -40,7 +76,7 @@
       </script>
 
       <embed name='nacl_module' id='nacl_module' width='1' height='1'
-             src='build/htmf.nmf' type='application/x-nacl'/>
+             src='newlib/Release/htmf_module.nmf' type='application/x-nacl'/>
     </div>
 
     <div>
