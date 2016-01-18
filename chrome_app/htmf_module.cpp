@@ -144,7 +144,7 @@ void HtmfInstance::HandleMessage(const pp::Var& var_message) {
   while (state.cur_player_idx == 1) {
     // Now the AI must move.
     move_t ai_move;
-    uct_move(10000, state, &ai_move);
+    uct_move(20000, state, &ai_move);
     make_move(ai_move, &state);
 
     PostMessage(pp::Var(toJSON(state, err)));
