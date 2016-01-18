@@ -43,10 +43,19 @@
         }
       }
 
+      function scoresString(scores) {
+        var scoreStrings = []
+        for (var i = 0; i < scores.length; i++) {
+          scoreStrings.push("Player " + (i+1) + ": " + scores[i]);
+        }
+        return scoreStrings.join(",    ");
+      }
+
       function handleMessage(msgEvent) {
         msg = JSON.parse(msgEvent.data);
         console.log(msg);
         game = msg;
+        document.getElementById("scores").textContent = scoresString(msg.scores);
         updateBoard('board', msg.board);
       }
 
@@ -62,7 +71,7 @@
   <body>
 
     <svg id="board" xmlns="http://www.w3.org/2000/svg" version="1.1"
-         viewbox="0 0 100 100">
+         viewbox="0 0 100 90">
     </svg>
 
     <script type="text/javascript">
@@ -79,10 +88,11 @@
              src='newlib/Release/htmf_module.nmf' type='application/x-nacl'/>
     </div>
 
+    <div id="scores">
+    </div>
+
     <div>
-      <table>
-        <button type='button' onclick='postMessage()'>PostMessage</button>
-      </table>
+      <button type='button' onclick='postMessage()'>Start Game</button>
     </div>
 
   </body>
