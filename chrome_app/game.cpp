@@ -93,6 +93,9 @@ bool is_legal_move(const move_t& move, const state_t& state) {
     if (move.penguin_idx != player.n_played_penguins) {
       return false;
     }
+    if (state.board[move.dest.x][move.dest.y] != 1) {
+      return false;
+    }
     return true;
   }
 
