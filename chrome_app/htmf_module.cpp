@@ -26,7 +26,9 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <iostream>
 
 #include <json/reader.h>
@@ -46,6 +48,7 @@ const int x_range[][2] =
 class HtmfInstance : public pp::Instance {
 public:
   explicit HtmfInstance(PP_Instance instance) : pp::Instance(instance) {
+    std::srand(std::time(0));
     memset(&state, 0, sizeof(state_t));
     state.n_players = 2;
     state.n_penguins = 4;
